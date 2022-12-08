@@ -2,6 +2,10 @@
 @JvmInline
 value class RockPaperScissors(val points: Int) {
 
+    init {
+        if (points == -1) error("Invalid input: $points")
+    }
+
     fun playWith(opponent: RockPaperScissors): Int {
         return if (points == opponent.points) {
             3 + points
@@ -12,15 +16,9 @@ value class RockPaperScissors(val points: Int) {
         }
     }
 
-    fun looserPoints(): Int {
-        val looser = points - 1
-        return if (looser > 0) looser else 3
-    }
+    fun looser() = if (points == 1) RockPaperScissors(3) else RockPaperScissors(points - 1)
 
-    fun winnerPoints(): Int {
-        val winner = points + 1
-        return if (winner <= 3) winner else 1
-    }
+    fun winner() = RockPaperScissors((points % 3) + 1)
 
     companion object {
 
@@ -41,10 +39,10 @@ fun main() {
         return input.sumOf { line ->
             val opponent = RockPaperScissors.fromAbc(line[0])
             when (line[2]) {
-                'X' -> opponent.looserPoints()
+                'X' -> opponent.looser().points
                 'Y' -> opponent.points + 3
-                'Z' -> opponent.winnerPoints() + 6
-                else -> error("Wrong input")
+                'Z' -> opponent.winner().points + 6
+                else -> error("Invalid input")
             }
         }
     }
