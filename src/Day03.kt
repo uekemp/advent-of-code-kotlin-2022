@@ -9,16 +9,14 @@ val Char.priority: Int
         }
     }
 
-fun findCompartmentDuplicates(rucksack: String): Set<Char> {
-    val duplicates = mutableSetOf<Char>()
+fun findDuplicatesIn(rucksack: String): Char {
     val half = rucksack.length / 2
     for (index in 0 until half) {
-        val char = rucksack[index]
-        if ((rucksack.indexOf(char, half) > 0) && (!duplicates.contains(char))) {
-            duplicates.add(char)
+        if (rucksack.indexOf(rucksack[index], half) > 0) {
+            return rucksack[index]
         }
     }
-    return duplicates
+    error("Couldn't find duplicate in $rucksack")
 }
 
 fun findBadge(rucksack: String, vararg rucksacks: String): Char {
@@ -27,7 +25,7 @@ fun findBadge(rucksack: String, vararg rucksacks: String): Char {
         badges.retainAll(r.toCharArray().toSet())
     }
     if (badges.isEmpty() || badges.size > 1) {
-        error("Too many badges: $badges")
+        error("Too many/too few badges: $badges")
     }
     return badges.first()
 }
@@ -35,12 +33,15 @@ fun findBadge(rucksack: String, vararg rucksacks: String): Char {
 fun main() {
     fun part1(input: List<String>): Int {
         return input.sumOf { line ->
-            findCompartmentDuplicates(line).sumOf { char -> char.priority }
+            findDuplicatesIn(line).priority
         }
     }
 
     fun part2(input: List<String>): Int {
         return input.chunked(3).sumOf { chunk ->
+            if (chunk.size != 3) {
+                error("Invalid input data")
+            }
             findBadge(chunk[0], chunk[1], chunk[2]).priority
         }
     }
