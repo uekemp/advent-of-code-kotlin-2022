@@ -24,7 +24,7 @@ fun findBadge(rucksack: String, vararg rucksacks: String): Char {
     for (r in rucksacks) {
         badges.retainAll(r.toCharArray().toSet())
     }
-    if (badges.isEmpty() || badges.size > 1) {
+    if (badges.size != 1) {
         error("Too many/too few badges: $badges")
     }
     return badges.first()
