@@ -105,8 +105,7 @@ fun main() {
         val result = mutableListOf<Directory>()
         val required = 30_000_000 - (70_000_000 - root.size)
         root.traverseDirectories { dir -> if (dir.size >= required) result.add(dir) }
-        result.sortBy(Directory::size)
-        return result.first().size
+        return result.minOf(Directory::size)
     }
 
     // test if implementation meets criteria from the description, like:
