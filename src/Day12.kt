@@ -1,5 +1,3 @@
-import java.util.*
-
 data class HeightMap(val destination: Point, val nodes: Array<MutableList<Node>>) {
 
     private val width = nodes[0].size
@@ -22,28 +20,26 @@ data class HeightMap(val destination: Point, val nodes: Array<MutableList<Node>>
         }
     }
 
-    fun neighboursOf(point: Point): MutableList<Node> {
-        val neighbours = mutableListOf<Node>()
-
-        if ((point.x > 0) && canMoveTo(point, point.x - 1, point.y)) {
-            neighbours.add(this[point.x - 1, point.y])
+    fun neighboursOf(point: Point): List<Node> {
+        return buildList<Node> {
+            if ((point.x > 0) && canMoveTo(point, point.x - 1, point.y)) {
+                add(this@HeightMap[point.x - 1, point.y])
+            }
+            if ((point.x < width - 1) && canMoveTo(point, point.x + 1, point.y)) {
+                add(this@HeightMap[point.x + 1, point.y])
+            }
+            if ((point.y > 0) && canMoveTo(point, point.x, point.y - 1)) {
+                add(this@HeightMap[point.x, point.y - 1])
+            }
+            if ((point.y < height - 1) && canMoveTo(point, point.x, point.y + 1)) {
+                add(this@HeightMap[point.x, point.y + 1])
+            }
         }
-        if ((point.x < width - 1) && canMoveTo(point, point.x + 1, point.y)) {
-            neighbours.add(this[point.x + 1, point.y])
-        }
-        if ((point.y > 0) && canMoveTo(point, point.x, point.y - 1)) {
-            neighbours.add(this[point.x, point.y - 1])
-        }
-        if ((point.y < height - 1) && canMoveTo(point, point.x, point.y + 1)) {
-            neighbours.add(this[point.x, point.y + 1])
-        }
-
-        return neighbours
     }
 
     fun createShortestPath(): List<Node> {
         check(this[destination].predecessor != null) { "Shortest path not found yet" }
-        val shortestPath = LinkedList<Node>()
+        val shortestPath = ArrayDeque<Node>()
         var current = this[destination]
         shortestPath.add(current)
         while (current.predecessor != null) {
