@@ -59,18 +59,31 @@ data class HeightMap(val destination: Point, val nodes: Array<MutableList<Node>>
         applyToAll {
             it.distance = Int.MAX_VALUE
             it.predecessor = null
-            it.isVisited = false
         }
     }
 
-    data class Node(
+    class Node(
         val position: Point,
         val height: Int,
         var distance: Int = Int.MAX_VALUE,
-        var predecessor: Node? = null,
-        var isVisited: Boolean = false
+        var predecessor: Node? = null
     ) {
         fun canMoveTo(other: Node): Boolean = this.height + 1 >= other.height
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as Node
+
+            if (position != other.position) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            return position.hashCode()
+        }
     }
 
     data class Point(val x: Int, val y: Int)
@@ -101,21 +114,20 @@ fun parseHeightMap(input: List<String>): HeightMap  {
 }
 
 fun findShortestPath(map: HeightMap): List<HeightMap.Node> {
-    val allNodes = mutableSetOf<HeightMap.Node>()
-    map.applyToAll { allNodes.add(it) }
+    val nonVisitedNodes = mutableSetOf<HeightMap.Node>()
+    map.applyToAll { nonVisitedNodes.add(it) }
 
-    while (map[map.destination].predecessor == null && allNodes.isNotEmpty()) {
-        val current = allNodes.filter { node -> !node.isVisited }.minBy { node -> node.distance }
+    while (map[map.destination].predecessor == null && nonVisitedNodes.isNotEmpty()) {
+        val current = nonVisitedNodes.minBy { node -> node.distance }
         val distanceToNext = current.distance + 1
 
         for (neighbour in map.neighboursOf(current.position)) {
-            if (allNodes.contains(neighbour) && distanceToNext < neighbour.distance) {
+            if (nonVisitedNodes.contains(neighbour) && distanceToNext < neighbour.distance) {
                 neighbour.distance = distanceToNext
                 neighbour.predecessor = current
             }
         }
-        current.isVisited = true
-        allNodes.remove(current)
+        nonVisitedNodes.remove(current)
     }
 
     return map.createShortestPath()
@@ -153,6 +165,7 @@ fun main() {
     val steps = part1(testInput)
     check(steps == 31)
     check(part2(testInput) == 29)
+    println("-----------------------")
 
     val input = readInput("Day12")
     check(part1(input) == 380)
