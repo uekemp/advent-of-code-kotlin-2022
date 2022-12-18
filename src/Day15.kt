@@ -102,7 +102,6 @@ data class Sensor(val position: Coordinate, val beacon: Coordinate) {
     }
 }
 
-data class Coordinate(val x: Int, val y: Int)
 
 
 fun parseSensorMap(input: List<String>): SensorMap {
