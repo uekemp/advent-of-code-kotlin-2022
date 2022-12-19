@@ -58,11 +58,10 @@ class JetPattern(text: String) {
     var index: Int = 0
 
     fun next(): Int {
-        return if (index < patterns.size) {
-            patterns[index++]
-        } else {
-            index = 1
-            patterns[0]
+        return patterns[index++].also {
+            if (index >= patterns.size) {
+                index = 0
+            }
         }
     }
 
@@ -84,57 +83,53 @@ class Chamber(private val jet: JetPattern) {
     private val settledRocks = mutableListOf<Rock>()
 
     fun newRock(): Rock {
-        val sprite = if (nextRockIndex < Sprites.size) {
-            Sprites[nextRockIndex++]
-        } else {
-            nextRockIndex = 1
-            Sprites[0]
+        val sprite = Sprites[nextRockIndex++].also {
+            if (nextRockIndex >= Sprites.size) {
+                nextRockIndex = 0
+            }
         }
-        val x = 2
-        val y = bounds.height + 3
-        return Rock(sprite, Coordinate(x, y))
+
+        return Rock(sprite, Coordinate(2, bounds.height + 3))
     }
 
     fun letRockFall(rock: Rock) {
         var current = rock
         while (true) {
-            val dx = jet.next()
-            if (isAllowedToMoveTo(current.move(dx = dx))) {
-                current = current.move(dx = dx)
-            }
-            val candidate = current.move(dy = -1)
-            if (!isAllowedToMoveTo(candidate)) {
-                settledRocks.add(current)
-                val overallHeight = settledRocks.maxOfOrNull { r -> r.position.y + r.bounds.height }!!
-                bounds = bounds.copy(height = overallHeight)
+            val (pushed, _) = tryMovement(current, dx = jet.next())
+            val (next, moved) = tryMovement(pushed, dy = -1)
+            if (!moved) {
+                settledRocks.add(pushed)
+                val newHeight = settledRocks.maxOfOrNull { r -> r.position.y + r.bounds.height }!!
+                bounds = bounds.copy(height = newHeight)
                 break
             } else {
-                current = candidate
+                current = next
             }
         }
     }
 
-    private fun isAllowedToMoveTo(rock: Rock): Boolean {
-        val rockBounds = rock.bounds
+    private fun tryMovement(current: Rock, dx: Int = 0, dy: Int = 0): Pair<Rock, Boolean> {
+        val candidate = current.move(dx, dy)
+        val rockBounds = candidate.bounds
 
         // Check left/right and bottom
         if ((rockBounds.position.x < 0) || (rockBounds.position.x + rockBounds.width > 7) || (rockBounds.position.y < 0)) {
-            return false
+            return current to false
         }
 
         // Check intersection with settled rocks
-        if (rock.intersects(bounds)) {
+        if (candidate.intersects(bounds)) {
             settledRocks.forEach { settled ->
-                if (settled.intersects(rock)) {
-                    return false
+                if (settled.intersects(candidate)) {
+                    return current to false
                 }
             }
         }
-        return true
+        return candidate to true
     }
 
     /**
-     * Construct a string representing the upper last 20 rows of the chamber.
+     * Construct a string identifying the upper last 20 rows of the chamber.
      */
     fun gameState(): String {
         val printRows = 20
@@ -226,11 +221,12 @@ fun main() {
                 val repeat = (max - i) / sequenceLength
                 val remaining = (max -i) % sequenceLength
                 computedHeight = chamber.bounds.height + (sequenceHeight * repeat)
-                val currentHeight = chamber.bounds.height
-                repeat(remaining.toInt()) {
-                    chamber.letRockFall(chamber.newRock())
+                computedHeight += chamber.bounds.height.let { initialHeight ->
+                    repeat(remaining.toInt()) {
+                        chamber.letRockFall(chamber.newRock())
+                    }
+                    chamber.bounds.height - initialHeight
                 }
-                computedHeight += (chamber.bounds.height - currentHeight)
                 break
             } else {
                 states.add(currentState)
