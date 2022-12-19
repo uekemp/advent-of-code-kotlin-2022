@@ -55,10 +55,7 @@ class JetPattern(text: String) {
 
     private val patterns = text.trim().toCharArray().map { c -> charToMovement(c) }
 
-    private var index: Int = 0
-
-    val size: Int
-        get() = patterns.size
+    var index: Int = 0
 
     fun next(): Int {
         return if (index < patterns.size) {
@@ -82,11 +79,9 @@ class Chamber(private val jet: JetPattern) {
 
     var bounds = Rect(Coordinate(0, 0), 7, 0)
 
+    var nextRockIndex = 0
+
     private val settledRocks = mutableListOf<Rock>()
-
-    private var nextRockIndex = 0
-
-    private var rockCount = 0L
 
     fun newRock(): Rock {
         val sprite = if (nextRockIndex < Sprites.size) {
@@ -97,10 +92,6 @@ class Chamber(private val jet: JetPattern) {
         }
         val x = 2
         val y = bounds.height + 3
-        rockCount++
-        if (rockCount % 100_000 == 0L) {
-            println("Created rock $rockCount")
-        }
         return Rock(sprite, Coordinate(x, y))
     }
 
@@ -142,6 +133,28 @@ class Chamber(private val jet: JetPattern) {
         return true
     }
 
+    /**
+     * Construct a string representing the upper last 20 rows of the chamber.
+     */
+    fun gameState(): String {
+        val printRows = 20
+        val text = Array(printRows) { CharArray(bounds.width) { '.' } }
+        val upper = bounds.height - printRows
+        for (i in settledRocks.size - 1 downTo 0) {
+            val rock = settledRocks[i]
+            if (rock.position.y < upper) {
+                break
+            } else {
+                rock.coordinates().forEach { c -> text[c.y - upper][c.x] = '#' }
+            }
+        }
+        return buildString {
+            text.forEach { line ->
+                line.forEach { c -> append(c) }
+            }
+        }
+    }
+
     override fun toString(): String {
         val text = Array(bounds.height) { CharArray(bounds.width) { '.' } }
         settledRocks.forEach { rock ->
@@ -157,12 +170,38 @@ class Chamber(private val jet: JetPattern) {
     }
 }
 
-data class GameState(val jetIndex: Int, val rockIndex: Int, val top: String)
+class GameState(val rockCount: Long, val height: Int, val jetIndex: Int, val rockIndex: Int, val top: String) {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as GameState
+
+        if (jetIndex != other.jetIndex) return false
+        if (rockIndex != other.rockIndex) return false
+        if (top != other.top) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = jetIndex
+        result = 31 * result + rockIndex
+        result = 31 * result + top.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "GameState jetIndex=$jetIndex, rockIndex=$rockIndex"
+    }
+}
 
 fun main() {
     fun part1(input: List<String>): Int {
+        val max = 2022
         val chamber = Chamber(JetPattern(input[0]));
-        for (i in 1..2022) {
+        for (i in 1..max) {
             chamber.letRockFall(chamber.newRock())
         }
 
@@ -170,21 +209,42 @@ fun main() {
     }
 
     fun part2(input: List<String>): Long {
+        val max = 1_000_000_000_000
         val jet = JetPattern(input[0])
-        var chamber = Chamber(jet);
-//        println("-------> ${1_000_000_000_000 % max}")
-        return 1
+        val chamber = Chamber(jet);
+        val states = mutableSetOf<GameState>()
+        var computedHeight = 0L
+
+        for (i in 1..max) {
+            chamber.letRockFall(chamber.newRock())
+            val currentState = GameState(i, chamber.bounds.height, jet.index, chamber.nextRockIndex, chamber.gameState())
+            if (states.contains(currentState)) {
+                // Found a sequence, now we can estimate the rest:
+                val lastState = states.first { s -> s == currentState }
+                val sequenceHeight = currentState.height - lastState.height
+                val sequenceLength = currentState.rockCount - lastState.rockCount
+                val repeat = (max - i) / sequenceLength
+                val remaining = (max -i) % sequenceLength
+                computedHeight = chamber.bounds.height + (sequenceHeight * repeat)
+                val currentHeight = chamber.bounds.height
+                repeat(remaining.toInt()) {
+                    chamber.letRockFall(chamber.newRock())
+                }
+                computedHeight += (chamber.bounds.height - currentHeight)
+                break
+            } else {
+                states.add(currentState)
+            }
+        }
+        return computedHeight
     }
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day17_test")
-    val result = part1(testInput)
-    check(result == 3068)
-    val result2 = part2(testInput)
-    println(part2(testInput))
-    check(result2 == 1514285714288)
+    check(part1(testInput) == 3068)
+    check(part2(testInput) == 1514285714288)
 
     val input = readInput("Day17")
     check(part1(input) == 3175)
-    println(part2(input))
+    check(part2(input) == 1555113636385)
 }
