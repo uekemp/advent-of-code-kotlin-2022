@@ -1,9 +1,8 @@
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
+import kotlin.system.measureTimeMillis
 
 typealias EncryptedList = ArrayDeque<ListItem>
 
-// Using LinkedList instead of ArrayDeque is about factor 4 slower!
+// Using LinkedList instead of ArrayDeque is roughly 4 times slower for part2!
 // typealias EncryptedList = LinkedList<ListItem>
 
 data class ListItem(val value: Long, val position: Int) {
@@ -44,7 +43,6 @@ fun parseEncryptedData(input: List<String>, decryptionKey: Int = 1): EncryptedLi
     return EncryptedList(input.mapIndexed { index, line -> ListItem(line.toLong() * decryptionKey, index) }.toList())
 }
 
-@OptIn(ExperimentalTime::class)
 fun main() {
     fun part1(input: List<String>): Long {
         val list = parseEncryptedData(input)
@@ -73,8 +71,9 @@ fun main() {
 
     val input = readInput("Day20")
     check(part1(input) == 9945L)
-    val d = measureTime {
+
+    val d = measureTimeMillis {
         check(part2(input) == 3338877775442L)
     }
-    println("Duration for part2=$d")
+    println("\nDuration for part2=${d}ms")
 }
