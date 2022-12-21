@@ -2,6 +2,9 @@ import kotlin.system.measureTimeMillis
 
 typealias EncryptedList = ArrayDeque<ListItem>
 
+// Using ArrayList instead of ArrayDeque consumes about the same time
+//typealias EncryptedList = ArrayList<ListItem>
+
 // Using LinkedList instead of ArrayDeque is roughly 4 times slower for part2!
 // typealias EncryptedList = LinkedList<ListItem>
 
