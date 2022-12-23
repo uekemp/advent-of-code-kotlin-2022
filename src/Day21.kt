@@ -102,8 +102,6 @@ private fun MonkeyMap.computeHumanFor(expected: Long, name: String) {
                     computeHumanFor(monkey.invertRightKnown(expected, rightResult), monkey.left)
                 } else if (rightContainsHuman) {
                     computeHumanFor(monkey.invertLeftKnown(expected, leftResult), monkey.right)
-                } else {
-                    error("Unexpected result")
                 }
             }
         }
