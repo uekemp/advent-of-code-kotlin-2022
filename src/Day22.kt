@@ -111,29 +111,29 @@ class BoardMap(private val rows: List<String>, private val commands: String) {
         error("Cannot find start")
     }
 
-    fun walk(steps: Int = Int.MAX_VALUE) {
+    fun walk(maxSteps: Int = Int.MAX_VALUE) {
         println("Start position is $position")
-        var s = 0
+        var currentStep = 0
+        val rotationCommands = charArrayOf('R', 'L')
+
         while (commandIndex < commands.length) {
-            if (commands[commandIndex] == 'R' || commands[commandIndex] == 'L') {
+            if (rotationCommands.contains(commands[commandIndex])) {
                 facing = facing.rotate(commands[commandIndex])
                 commandIndex++
-                println("New facing is: $facing")
             } else {
-                val limit = commands.indexOfAny(charArrayOf('R', 'L'), commandIndex).let {
+                val nextRotationIndex = commands.indexOfAny(rotationCommands, commandIndex).let {
                     if (it == -1) commands.length else it
                 }
-                val number = commands.substring(commandIndex, limit).toInt()
-                commandIndex = limit
+                val number = commands.substring(commandIndex, nextRotationIndex).toInt()
+                commandIndex = nextRotationIndex
 
                 for (i in 1..number) {
                     if (nextValidTileFor(position) == TileType.ROCK) {
                         break
                     }
                 }
-                println("Moved $number steps $facing, new position is $position")
             }
-            if (s++ >= steps) {
+            if (currentStep++ >= maxSteps) {
                 break
             }
         }
@@ -178,6 +178,7 @@ class BoardMap(private val rows: List<String>, private val commands: String) {
                 next
             }
         }
+        // Move until we are back on the map
         if (typeOf(wrapped) == TileType.INVALID) {
             moveWrapped(wrapped)
         }
@@ -204,7 +205,6 @@ fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day22_test")
     check(part1(testInput) == 6032L)
-    println("---------------------------------------------")
 
     val input = readInput("Day22")
     check(part1(input) == 131052L)
