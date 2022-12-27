@@ -17,12 +17,12 @@ value class Coordinate(private val packedValue: Long) {
 
     fun copy(x: Int = this.x, y: Int = this.y) = Coordinate(x, y)
 
-    fun move(dx : Int = 0, dy: Int = 0) = Coordinate(x + dx, y + dy)
+    fun moveBy(dx : Int = 0, dy: Int = 0) = Coordinate(x + dx, y + dy)
 
-    fun move(coordinate: Coordinate) = move(coordinate.x, coordinate.y)
+    fun moveBy(coordinate: Coordinate) = moveBy(coordinate.x, coordinate.y)
 
     override fun toString(): String {
-        return "[$x, $y]"
+        return "Coordinate [$x, $y]"
     }
 
     companion object {

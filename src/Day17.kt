@@ -39,11 +39,11 @@ class Rock(private val sprite: RockSprite, position: Coordinate) {
     }
 
     fun move(dx : Int = 0, dy: Int = 0): Rock {
-        return Rock(sprite, position.move(dx, dy))
+        return Rock(sprite, position.moveBy(dx, dy))
     }
 
     fun coordinates(): MutableList<Coordinate> {
-        return sprite.coordinates.map { c -> c.move(position) }.toMutableList()
+        return sprite.coordinates.map { c -> c.moveBy(position) }.toMutableList()
     }
 
     override fun toString(): String {

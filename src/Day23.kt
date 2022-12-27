@@ -13,21 +13,13 @@ data class Elf(val position: Coordinate, var proposedPosition: Coordinate? = nul
                 add(Coordinate(position.x, position.y - 1))
                 add(Coordinate(position.x + 1, position.y - 1))
         }
-
-    fun move(): Elf {
-        return if (proposedPosition != null) {
-            copy(position = proposedPosition!!, proposedPosition = null)
-        } else {
-            this
-        }
-    }
 }
 
-class Grove(var elfs: List<Elf>) {
+class Grove(val elfs: MutableList<Elf>) {
 
     private val directions = ArrayDeque<Direction>(4)
 
-    private val elfPositions = HashSet<Coordinate>()
+    private val elfPositions = mutableSetOf<Coordinate>()
 
     init {
         directions.addAll(listOf(Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST))
@@ -48,68 +40,67 @@ class Grove(var elfs: List<Elf>) {
         elfs.forEach { elf -> elfPositions.add(elf.position) }
     }
 
-    private fun isOccupied(coordinate: Coordinate) = elfPositions.contains(coordinate)
+    private fun hasElf(coordinate: Coordinate) = elfPositions.contains(coordinate)
 
-    private fun isOccupied(coordinates: List<Coordinate>): Boolean {
+    private fun hasElf(coordinates: List<Coordinate>): Boolean {
+        // Note: varargs currently not possible with value classes!
         return elfPositions.any { coordinates.contains(it) }
+    }
+
+    private fun hasElf(c1: Coordinate, c2: Coordinate, c3: Coordinate): Boolean {
+        return elfPositions.contains(c1) || elfPositions.contains(c2) || elfPositions.contains(c3)
     }
 
     fun move(): Boolean {
         rememberPositions()
 
         // First half:
-        val newPositions = mutableMapOf<Coordinate, MutableList<Elf>>()
-        elfs.forEach { elf ->
-            if (isOccupied(elf.surroundingPositions)) {
-                for (direction in directions) {
-                    if (!isOccupied(direction.coordinatesFor(elf.position))) {
-                        val newPosition = elf.position.move(dx = direction.dx, dy = direction.dy)
-//                        println("New position for $elf is $newPosition")
-
-                        newPositions[newPosition]?.add(elf) ?: run {
-                            elf.proposedPosition = newPosition
-                            newPositions[newPosition] = mutableListOf(elf)
-                        }
-                        break
+        val newPositions = mutableMapOf<Coordinate, Elf>()
+        elfs.filter { elf -> hasElf(elf.surroundingPositions) }
+            .forEach { elf ->
+            val elfPosition = elf.position
+            for (direction in directions) {
+                if (!hasElf(direction.coordinate1(elfPosition), direction.coordinate2(elfPosition), direction.coordinate3(elfPosition))) {
+                    // There can never be more than 2 elfs competing for the same position, hence once we found a
+                    // second elf, we can safely remove this position
+                    val newPosition = elfPosition.moveBy(dx = direction.dx, dy = direction.dy)
+                    val existing = newPositions[newPosition]
+                    if (existing == null) {
+                        elf.proposedPosition = newPosition
+                        newPositions[newPosition] = elf
+                    } else {
+                        existing.proposedPosition = null
+                        newPositions.remove(newPosition)
                     }
+                    break
                 }
             }
         }
         nextDirection()
 
         // Second half:
-        newPositions.values.forEach { elfs ->
-            if (elfs.size > 1) {
-                elfs.forEach { elf -> elf.proposedPosition = null }
+        var changeCount = 0
+        elfs.forEachIndexed { index, elf ->
+            elf.proposedPosition?.let { proposedPosition ->
+                elfs[index] = elf.copy(position = proposedPosition, proposedPosition = null)
+                changeCount++
             }
         }
-        val elfsToMove = elfs.count { elf -> elf.proposedPosition != null }
-        println("Elfs to move: $elfsToMove, grove=${width}x$height")
-        if (elfsToMove == 0) {
-            return false
-        } else {
-            elfs = elfs.map { elf -> elf.move() }.toList()
-            return true
-        }
+        println("Elfs moved: $changeCount")
+        return changeCount != 0
     }
 
     fun countEmptyTiles(): Int {
         var count = 0
         for (x in elfs.minOf { elf -> elf.position.x }..elfs.maxOf { elf -> elf.position.x }) {
             for (y in elfs.minOf { elf -> elf.position.y }..elfs.maxOf { elf -> elf.position.y }) {
-                if (!isOccupied(Coordinate(x, y))) {
+                if (!hasElf(Coordinate(x, y))) {
                     count++
                 }
             }
         }
 
         return count
-    }
-
-    override fun toString(): String {
-        return buildString {
-
-        }
     }
 
     companion object {
@@ -127,7 +118,7 @@ class Grove(var elfs: List<Elf>) {
                     }
                 }
             }
-            return Grove(elfs)
+            return Grove(elfs.toMutableList())
         }
     }
 }
@@ -145,9 +136,11 @@ enum class Direction(
     WEST(dx = -1, dy = 0,  altX1 = -1, altY1 = -1, altX2 = -1, altY2 = 1),
     EAST(dx = 1, dy = 0,  altX1 = 1, altY1 = -1, altX2 = 1, altY2 = 1);
 
-    fun coordinatesFor(coordinate: Coordinate): List<Coordinate> {
-        return listOf(coordinate.move(dx, dy), coordinate.move(altX1, altY1), coordinate.move(altX2, altY2))
-    }
+    fun coordinate1(source: Coordinate) = source.moveBy(dx, dy)
+
+    fun coordinate2(source: Coordinate) = source.moveBy(altX1, altY1)
+
+    fun coordinate3(source: Coordinate) = source.moveBy(altX2, altY2)
 }
 
 fun main() {

@@ -4,7 +4,7 @@ enum class Facing(val value: Int) {
     RIGHT(0) {
         override fun isHorizontal() = true
 
-        override fun move(c: Coordinate) = c.move(dx = 1)
+        override fun move(c: Coordinate) = c.moveBy(dx = 1)
 
         override fun rotate(turn: Char): Facing {
             return when(turn) {
@@ -18,7 +18,7 @@ enum class Facing(val value: Int) {
     LEFT(2) {
         override fun isHorizontal() = true
 
-        override fun move(c: Coordinate) = c.move(dx = -1)
+        override fun move(c: Coordinate) = c.moveBy(dx = -1)
 
         override fun rotate(turn: Char): Facing {
             return when(turn) {
@@ -32,7 +32,7 @@ enum class Facing(val value: Int) {
     DOWN(1) {
         override fun isHorizontal() = false
 
-        override fun move(c: Coordinate) = c.move(dy = 1)
+        override fun move(c: Coordinate) = c.moveBy(dy = 1)
 
         override fun rotate(turn: Char): Facing {
             return when(turn) {
@@ -46,7 +46,7 @@ enum class Facing(val value: Int) {
     UP(3) {
         override fun isHorizontal() = false
 
-        override fun move(c: Coordinate) = c.move(dy = -1)
+        override fun move(c: Coordinate) = c.moveBy(dy = -1)
 
         override fun rotate(turn: Char): Facing {
             return when(turn) {

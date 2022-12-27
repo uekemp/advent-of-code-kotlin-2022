@@ -6,7 +6,7 @@ import java.security.MessageDigest
 data class Rect(val position: Coordinate, val width: Int, val height: Int) {
 
     fun move(dx : Int = 0, dy: Int = 0): Rect {
-        return copy(position = position.move(dx, dy))
+        return copy(position = position.moveBy(dx, dy))
     }
 
     fun intersects(other: Rect): Boolean {
