@@ -2,14 +2,6 @@ import java.io.File
 import java.math.BigInteger
 import java.security.MessageDigest
 
-data class Coordinate(val x: Int, val y: Int) {
-
-    fun move(dx : Int = 0, dy: Int = 0): Coordinate {
-        return Coordinate(x + dx, y + dy)
-    }
-
-    fun move(coordinate: Coordinate) = move(coordinate.x, coordinate.y)
-}
 
 data class Rect(val position: Coordinate, val width: Int, val height: Int) {
 

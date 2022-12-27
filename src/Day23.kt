@@ -1,3 +1,5 @@
+import kotlin.system.measureTimeMillis
+
 data class Elf(val position: Coordinate, var proposedPosition: Coordinate? = null) {
 
     val surroundingPositions: List<Coordinate>
@@ -162,7 +164,6 @@ fun main() {
         var count = 1
         while (grove.move()) {
             count++
-            println("Round: $count")
         }
         return count
     }
@@ -173,5 +174,6 @@ fun main() {
 
     val input = readInput("Day23")
     check(part1(input) == 3864)
-    check(part2(input) == 946)
+    val d = measureTimeMillis { check(part2(input) == 946) }
+    println("Duration: ${d}ms")
 }
