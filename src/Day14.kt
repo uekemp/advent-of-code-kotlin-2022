@@ -140,21 +140,13 @@ class Cave {
 fun main() {
     fun part1(input: List<String>): Int {
         return with(Cave.of(input)) {
-            var count = 0
-            while (nextPart1()) {
-                count++
-            }
-            count
+            generateSequence { if (nextPart1()) 1 else null }.sum()
         }
     }
 
     fun part2(input: List<String>): Int {
         return with(Cave.of(input)) {
-            var count = 0
-            while (nextPart2()) {
-                count++
-            }
-            count
+            generateSequence { if (nextPart2()) 1 else null }.sum()
         }
     }
 
