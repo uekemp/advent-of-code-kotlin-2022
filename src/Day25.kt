@@ -1,7 +1,7 @@
 
 typealias Snafu = String
 
-fun Snafu.toInt(): Int {
+private fun Snafu.toInt(): Int {
     val chars = toCharArray()
     chars.reverse()
     var f = 1
