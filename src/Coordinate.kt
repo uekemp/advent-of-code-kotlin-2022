@@ -1,4 +1,3 @@
-
 @Suppress("NOTHING_TO_INLINE")
 inline fun Coordinate(x: Int, y: Int) = Coordinate(packInts(x, y))
 
@@ -14,6 +13,24 @@ value class Coordinate(private val packedValue: Long) {
     operator fun component1(): Int = x
 
     operator fun component2(): Int = y
+
+    operator fun rangeTo(other: Coordinate): Iterator<Coordinate> {
+        return if (this.x == other.x) {
+            if (this.y < other.y) {
+                (this.y..other.y).map { y -> Coordinate(this.x, y) }.iterator()
+            } else {
+                (this.y downTo other.y).map { y -> Coordinate(this.x, y) }.iterator()
+            }
+        } else if (this.y == other.y) {
+            if (this.x < other.x) {
+                (this.x..other.x).map { x -> Coordinate(x, this.y) }.iterator()
+            } else {
+                (this.x downTo other.x).map { x -> Coordinate(x, this.y) }.iterator()
+            }
+        } else {
+            throw IllegalArgumentException("For a coordinate range at least one dimension must be identical $this, $other")
+        }
+    }
 
     fun copy(x: Int = this.x, y: Int = this.y) = Coordinate(x, y)
 
