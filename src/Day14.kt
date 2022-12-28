@@ -11,16 +11,16 @@ class Cave {
     val data = mutableMapOf<Coordinate, CaveType>()
 
     private val left: Int
-        get() = data.keys.minOf { c -> c.x }
+        get() = data.keys.minOf { it.x }
 
     private val right: Int
-        get() = data.keys.maxOf { c -> c.x }
+        get() = data.keys.maxOf { it.x }
 
     private val top: Int
-        get() = data.keys.minOf { c -> c.y }
+        get() = data.keys.minOf { it.y }
 
     private val bottom: Int
-        get() = data.keys.maxOf { c -> c.y }
+        get() = data.keys.maxOf { it.y }
 
     private var lowestRock = Int.MIN_VALUE   // Used for part 1
 
