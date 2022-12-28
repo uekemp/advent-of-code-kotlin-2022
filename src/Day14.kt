@@ -41,8 +41,8 @@ class Cave {
     private fun isBlocked(c: Coordinate) = this[c] != CaveType.OPEN
 
     fun addRocks(coordinates: List<Coordinate>) {
-        coordinates.windowed(2) { pair ->
-            for (rockCoordinate in pair[0]..pair[1]) {
+        coordinates.zipWithNext { start, end ->
+            for (rockCoordinate in start..end) {
                 this[rockCoordinate] = CaveType.ROCK
 
                 if (rockCoordinate.y > lowestRock) {
